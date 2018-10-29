@@ -1,0 +1,26 @@
+{
+  "name": "webtools",
+  "version": "1.0.0",
+  "description": "tab based web tools",
+  "main": "app.js",
+  "dependencies": {
+    "asyncawait": "1.0.7",
+    "easy-config": "0.5.1",
+    "express": "^4.16.3",
+    "glob": "7.1.2",
+    "optimist": "0.6",
+    "socket.io": "2.1.1",
+    "sync": "0.2.5",
+    "underscore": "1.9.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "none"
+  },
+  "author": "",
+  "license": "ISC"
+}

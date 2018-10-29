@@ -1,0 +1,56 @@
+{
+  "name": "streamsaver",
+  "version": "1.0.1",
+  "description": "StreamSaver writes stream to the filesystem directly - asynchronous",
+  "main": "StreamSaver.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://jimmywarting@github.com/jimmywarting/StreamSaver.js.git"
+  },
+  "keywords": [
+    "saving",
+    "streams",
+    "stream",
+    "html5",
+    "file",
+    "blob"
+  ],
+  "author": {
+    "name": "Jimmy Wärting",
+    "email": "jimmy@warting.se"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jimmywarting/StreamSaver.js/issues"
+  },
+  "homepage": "https://github.com/jimmywarting/StreamSaver.js#readme",
+  "gitHead": "c6d19c01e55430f04c8162a1036730e692806561",
+  "_id": "streamsaver@1.0.1",
+  "_shasum": "475d404973b5e6926a557f0e4cd8558a3520e07c",
+  "_from": "streamsaver@latest",
+  "_npmVersion": "4.2.0",
+  "_nodeVersion": "7.8.0",
+  "_npmUser": {
+    "name": "endless",
+    "email": "jimmy@warting.se"
+  },
+  "dist": {
+    "shasum": "475d404973b5e6926a557f0e4cd8558a3520e07c",
+    "tarball": "https://registry.npmjs.org/streamsaver/-/streamsaver-1.0.1.tgz"
+  },
+  "maintainers": [
+    {
+      "name": "endless",
+      "email": "jimmy@warting.se"
+    }
+  ],
+  "_npmOperationalInternal": {
+    "host": "packages-18-east.internal.npmjs.com",
+    "tmp": "tmp/streamsaver-1.0.1.tgz_1492941109346_0.08385333861224353"
+  },
+  "directories": {},
+  "_resolved": "https://registry.npmjs.org/streamsaver/-/streamsaver-1.0.1.tgz"
+}

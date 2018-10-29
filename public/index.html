@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+
+        <style>
+
+	    /* use a pretty font*/
+            body 
+            {
+                font-family: Arial;
+            }
+
+            .reset_button
+            {
+                position: absolute;
+                right: 10px;
+            }
+
+            /* Style the tab */
+            .tab 
+            {
+                position: absolute;
+                top : 0;
+                left : 0;
+                right : 0;
+                border: 1px solid #ccc;
+                background-color: #f1f1f1;
+                height: 39px;
+            }
+
+            /* Style the tab content */
+            .tabcontent
+            {
+                position: absolute;
+    	        z-index: 0;
+   	        right: 0;
+                bottom: 0;
+    	        left: 0;
+                top: 41px;
+                display: absolute;
+                padding: 6px 12px;text
+                border-top: none;
+                background-color: white;
+            }
+
+            /* Style inner HTML pages */
+            .objcontent 
+            {
+                position: absolute;
+                top: 0;
+                left: 0;
+                height: 100%;
+                width: 100%;
+                border-top: none;
+                background-color: white;
+            }
+
+        </style>
+        <!-- Essential scripts -->
+	<script src="/WebTools/SharedJS/alertMask.js"></script>
+        <script src="/WebTools/socket.io/socket.io.js"></script>
+        <script src="/WebTools/webtools.js"></script>
+        <script src="/WebTools/SharedJS/mobileCheck.js"></script>
+
+    </head>
+
+    <body>
+
+        <div class="tab" id = "tab">
+	    <!-- hardcoded home tab and reset button -->
+            <button id = 'btn_home' onclick="openTab('Home')">Home</button>
+            <button id= 'btn_reset' class ="reset_button" onclick = "resetTab()">Reload Tab</button>
+        </div>
+        <!-- basic home page-->
+        <div id="Home" class="tabcontent">
+            <h3>Home</h3>
+            <p>Welcome to Cae-Web-Tools This is the home page if you just added a script reset below</p>
+            <button onclick = "socket.emit('reload');">reset</button>
+        </div>
+    </body>
+
+</html> 
+

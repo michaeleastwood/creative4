@@ -1,0 +1,10 @@
+{
+	"heartbeat": 150,
+	"port": 8080,
+	"ns": {
+		"Color": {
+			"colorbeat": 50
+		}
+	},
+	"path": "/home/ec2-user/.c9/node_modules"
+}

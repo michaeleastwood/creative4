@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <title>app.js</title>
+  <link rel="stylesheet" href="pycco.css">
+</head>
+<body>
+<div id='container'>
+  <div id="background"></div>
+  <div class='section'>
+    <div class='docs'><h1>app.js</h1></div>
+  </div>
+  <div class='clearall'>
+  <div class='section' id='section-0'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-0'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span></span><span class="kd">var</span> <span class="nx">express</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;express&#39;</span><span class="p">);</span>
+<span class="kd">var</span> <span class="nx">http</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;http&#39;</span><span class="p">);</span>
+<span class="kd">var</span> <span class="nx">path</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;path&#39;</span><span class="p">);</span>
+<span class="kd">var</span> <span class="nx">server</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;socket.io&#39;</span><span class="p">)</span>
+<span class="kd">var</span> <span class="nx">glob</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;glob&#39;</span><span class="p">);</span>
+<span class="kd">var</span> <span class="nx">fs</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;fs&#39;</span><span class="p">);</span>
+<span class="kd">var</span> <span class="nx">safesocket</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;./safesocket.js&#39;</span><span class="p">);</span>
+<span class="kd">var</span> <span class="nx">_</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;underscore&#39;</span><span class="p">);</span>
+<span class="kd">var</span> <span class="nx">async</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;asyncawait/async&#39;</span><span class="p">);</span>
+<span class="kd">var</span> <span class="nx">await</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;asyncawait/await&#39;</span><span class="p">);</span>
+<span class="kd">var</span> <span class="nx">globRequires</span> <span class="o">=</span> <span class="p">[];</span>
+<span class="kd">var</span> <span class="nx">oldGlobs</span> <span class="o">=</span> <span class="p">{</span><span class="nx">objs</span> <span class="o">:</span> <span class="p">[],</span> <span class="nx">maxGen</span> <span class="o">:</span> <span class="mi">0</span><span class="p">};</span>
+<span class="kd">var</span> <span class="nx">appSockets</span> <span class="o">=</span> <span class="p">[];</span>
+<span class="kd">var</span> <span class="nx">mainSockets</span> <span class="o">=</span> <span class="p">[];</span>
+<span class="kd">var</span> <span class="nx">config</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="nx">path</span><span class="p">.</span><span class="nx">resolve</span><span class="p">(</span><span class="s1">&#39;./public/WebTools/SharedJS/config.js&#39;</span><span class="p">));</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-1'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-1'>#</a>
+      </div>
+      <p>handles all exceptions without crashing</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="nx">process</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s1">&#39;uncaughtException&#39;</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="s1">&#39;Error: &#39;</span> <span class="o">+</span> <span class="nx">e</span><span class="p">);</span>
+<span class="p">});</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-2'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-2'>#</a>
+      </div>
+      <p>loads config file</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="nx">config</span><span class="p">.</span><span class="nx">init</span><span class="p">();</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-3'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-3'>#</a>
+      </div>
+      <p>loads up tabs</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="nx">load</span><span class="p">();</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-4'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-4'>#</a>
+      </div>
+      <p>reads command line</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="kd">var</span> <span class="nx">opts</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;optimist&#39;</span><span class="p">)</span>
+    <span class="p">.</span><span class="nx">options</span><span class="p">({</span>
+        <span class="nx">port</span><span class="o">:</span> <span class="p">{</span>
+            <span class="nx">demand</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span>
+            <span class="nx">alias</span><span class="o">:</span> <span class="s1">&#39;p&#39;</span><span class="p">,</span>
+            <span class="nx">description</span><span class="o">:</span> <span class="s1">&#39;webtools listen port&#39;</span>
+        <span class="p">},</span>
+        <span class="nx">heartbeat</span><span class="o">:</span> <span class="p">{</span>
+            <span class="nx">demand</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span>
+            <span class="nx">alias</span><span class="o">:</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span>
+            <span class="nx">description</span><span class="o">:</span> <span class="s1">&#39;heartbeat frequency in seconds between 2 and 3600&#39;</span>
+        <span class="p">},</span>
+    <span class="p">}).</span><span class="kr">boolean</span><span class="p">(</span><span class="s1">&#39;allow_discovery&#39;</span><span class="p">).</span><span class="nx">argv</span><span class="p">;</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-5'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-5'>#</a>
+      </div>
+      <p>reads config file</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="nx">opts</span><span class="p">.</span><span class="nx">heartbeat</span> <span class="o">=</span> <span class="nx">config</span><span class="p">.</span><span class="nx">conditionalSet</span><span class="p">(</span><span class="s1">&#39;heartbeat&#39;</span><span class="p">,</span><span class="nx">opts</span><span class="p">.</span><span class="nx">heartbeat</span><span class="p">,</span><span class="mi">30</span><span class="p">,[</span><span class="mi">30</span><span class="p">,</span><span class="mi">3600</span><span class="p">]);</span>
+<span class="nx">opts</span><span class="p">.</span><span class="nx">port</span> <span class="o">=</span> <span class="nx">config</span><span class="p">.</span><span class="nx">conditionalSet</span><span class="p">(</span><span class="s1">&#39;port&#39;</span><span class="p">,</span><span class="nx">opts</span><span class="p">.</span><span class="nx">port</span><span class="p">,</span><span class="mi">80</span><span class="p">);</span>
+
+<span class="kd">var</span> <span class="nx">clearLoop</span> <span class="o">=</span> <span class="nx">setInterval</span><span class="p">(</span><span class="nx">clearOld</span><span class="p">,</span> <span class="nx">opts</span><span class="p">.</span><span class="nx">heartbeat</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">);</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-6'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-6'>#</a>
+      </div>
+      <p>setting up webserver and socket.io</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="kd">var</span> <span class="nx">httpserv</span><span class="p">;</span>
+<span class="kd">var</span> <span class="nx">app</span> <span class="o">=</span> <span class="nx">express</span><span class="p">();</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-7'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-7'>#</a>
+      </div>
+      <p>setting up main directory</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="nx">app</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="nx">express</span><span class="p">.</span><span class="kr">static</span><span class="p">(</span><span class="nx">path</span><span class="p">.</span><span class="nx">join</span><span class="p">(</span><span class="nx">__dirname</span><span class="p">,</span> <span class="s1">&#39;public&#39;</span><span class="p">)));</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-8'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-8'>#</a>
+      </div>
+      <p>listenting on http on port found in command line or config file</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="nx">httpserv</span> <span class="o">=</span> <span class="nx">http</span><span class="p">.</span><span class="nx">createServer</span><span class="p">(</span><span class="nx">app</span><span class="p">).</span><span class="nx">listen</span><span class="p">(</span><span class="nx">opts</span><span class="p">.</span><span class="nx">port</span><span class="p">,</span> <span class="kd">function</span><span class="p">()</span> 
+<span class="p">{</span>
+     <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;http on port &#39;</span> <span class="o">+</span> <span class="nx">opts</span><span class="p">.</span><span class="nx">port</span><span class="p">);</span>
+<span class="p">});</span>
+<span class="kd">var</span> <span class="nx">io</span> <span class="o">=</span> <span class="nx">server</span><span class="p">(</span><span class="nx">httpserv</span><span class="p">,{</span><span class="nx">path</span><span class="o">:</span> <span class="s1">&#39;/WebTools/socket.io&#39;</span><span class="p">});</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-9'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-9'>#</a>
+      </div>
+      <p>on new sockete connection</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="nx">io</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s1">&#39;connection&#39;</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">socket</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">request</span> <span class="o">=</span> <span class="nx">socket</span><span class="p">.</span><span class="nx">request</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">id</span> <span class="o">=</span> <span class="nx">request</span><span class="p">.</span><span class="nx">_query</span><span class="p">[</span><span class="s1">&#39;tab_id&#39;</span><span class="p">];</span>
+    <span class="kd">var</span> <span class="nx">current_date</span> <span class="o">=</span> <span class="k">new</span> <span class="nb">Date</span><span class="p">();</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-10'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-10'>#</a>
+      </div>
+      <p>main socket</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="nx">id</span><span class="p">)</span>
+    <span class="p">{</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-11'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-11'>#</a>
+      </div>
+      <p>adds socket to main socckets and adds the main events to the socket</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="nx">mainSockets</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">socket</span><span class="p">);</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">current_date</span> <span class="o">+</span><span class="s2">&quot;  ID: &quot;</span><span class="o">+</span><span class="nx">socket</span><span class="p">.</span><span class="nx">id</span><span class="o">+</span> <span class="s1">&#39;  Connection accepted.\n&#39;</span><span class="p">);</span>
+
+        <span class="nx">socket</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s1">&#39;disconnect&#39;</span><span class="p">,</span> <span class="kd">function</span><span class="p">()</span> 
+        <span class="p">{</span>
+            <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">current_date</span> <span class="o">+</span> <span class="s2">&quot;  ID: &quot;</span> <span class="o">+</span> <span class="nx">socket</span><span class="p">.</span><span class="nx">id</span> <span class="o">+</span> <span class="s2">&quot;  ENDED\n&quot;</span><span class="p">);</span>
+        <span class="p">});</span> 
+    
+        <span class="nx">socket</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s1">&#39;tabs&#39;</span><span class="p">,</span><span class="kd">function</span><span class="p">()</span>
+        <span class="p">{</span>
+            <span class="nx">socket</span><span class="p">.</span><span class="nx">emit</span><span class="p">(</span><span class="s1">&#39;tabSync&#39;</span><span class="p">,</span> <span class="nx">buildTabs</span><span class="p">());</span>
+        <span class="p">});</span>
+
+        <span class="nx">socket</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s1">&#39;reload&#39;</span><span class="p">,</span><span class="kd">function</span><span class="p">()</span>
+        <span class="p">{</span>
+            <span class="nx">update</span><span class="p">(</span><span class="nx">socket</span><span class="p">);</span>
+        <span class="p">});</span>
+        
+    <span class="p">}</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-12'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-12'>#</a>
+      </div>
+      <p>tab socket </p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">else</span>
+    <span class="p">{</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-13'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-13'>#</a>
+      </div>
+      <p>finds loaded backend</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="nx">globRequires</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">tab</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="k">if</span><span class="p">(</span><span class="nx">tab</span><span class="p">.</span><span class="nx">name</span> <span class="o">==</span> <span class="nx">id</span><span class="p">)</span>
+            <span class="p">{</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-14'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-14'>#</a>
+      </div>
+      <p>creates new safe socket from a new subdirectory and socket then runs the tab with this safe socket</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>                <span class="kd">var</span> <span class="nx">sub_app</span> <span class="o">=</span> <span class="nx">express</span><span class="p">();</span>
+                <span class="nx">sSocket</span> <span class="o">=</span> <span class="nx">safesocket</span><span class="p">.</span><span class="nx">run</span><span class="p">(</span><span class="nx">socket</span><span class="p">,</span><span class="nx">id</span><span class="p">,</span><span class="nx">app</span><span class="p">,</span><span class="nx">express</span><span class="p">(),</span><span class="nx">config</span><span class="p">);</span>
+                <span class="nx">appSockets</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">sSocket</span><span class="p">);</span>
+                <span class="nx">tab</span><span class="p">.</span><span class="nx">backend</span><span class="p">.</span><span class="nx">run</span><span class="p">(</span><span class="nx">sSocket</span><span class="p">);</span>
+            <span class="p">}</span>
+        <span class="p">});</span>
+    <span class="p">}</span>
+    
+<span class="p">});</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-15'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-15'>#</a>
+      </div>
+      <p>loads in files</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="kd">function</span> <span class="nx">load</span><span class="p">(</span><span class="nx">files</span><span class="p">,</span> <span class="nx">reset</span><span class="p">)</span>
+<span class="p">{</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-16'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-16'>#</a>
+      </div>
+      <p>establishing defaults for inputs, has to be done messily in node :(</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="nx">files</span> <span class="o">=</span> <span class="k">typeof</span> <span class="nx">files</span>  <span class="o">!==</span> <span class="s1">&#39;undefined&#39;</span> <span class="o">?</span> <span class="nx">files</span> <span class="o">:</span> <span class="nx">glob</span><span class="p">.</span><span class="nx">sync</span><span class="p">(</span><span class="s1">&#39;./public/tabs/*/*.js&#39;</span><span class="p">);</span>
+    <span class="nx">reset</span> <span class="o">=</span> <span class="k">typeof</span> <span class="nx">reset</span>  <span class="o">!==</span> <span class="s1">&#39;undefined&#39;</span> <span class="o">?</span> <span class="nx">reset</span> <span class="o">:</span> <span class="kc">true</span><span class="p">;</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-17'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-17'>#</a>
+      </div>
+      <p>resets all tabs</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">if</span><span class="p">(</span><span class="nx">reset</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="nx">globRequires</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="p">}</span>
+
+    <span class="nx">files</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">file</span><span class="p">)</span>
+    <span class="p">{</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-18'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-18'>#</a>
+      </div>
+      <p>imports file</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="nx">backend</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="nx">path</span><span class="p">.</span><span class="nx">resolve</span><span class="p">(</span><span class="nx">file</span><span class="p">));</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-19'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-19'>#</a>
+      </div>
+      <p>finds path to file</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="nx">path_names</span> <span class="o">=</span> <span class="nx">file</span><span class="p">.</span><span class="nx">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">);</span>
+        <span class="nx">tab_name</span> <span class="o">=</span> <span class="nx">path_names</span><span class="p">[</span><span class="nx">path_names</span><span class="p">.</span><span class="nx">length</span> <span class="o">-</span><span class="mi">2</span><span class="p">];</span>
+        <span class="nx">short_path</span> <span class="o">=</span> <span class="nx">file</span><span class="p">.</span><span class="nx">substring</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="nx">file</span><span class="p">.</span><span class="nx">indexOf</span><span class="p">(</span><span class="nx">path_names</span><span class="p">[</span><span class="nx">path_names</span><span class="p">.</span><span class="nx">length</span> <span class="o">-</span><span class="mi">1</span><span class="p">]));</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-20'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-20'>#</a>
+      </div>
+      <p>loads whatever index.html is in the same directory if none is fount it defaults to home.html</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="nx">html</span> <span class="o">=</span> <span class="nx">short_path</span> <span class="o">+</span> <span class="s1">&#39;index.html&#39;</span><span class="p">;</span>
+        <span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="nx">fs</span><span class="p">.</span><span class="nx">existsSync</span><span class="p">(</span><span class="nx">html</span><span class="p">))</span>
+        <span class="p">{</span>
+	    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;no html detected for &#39;</span> <span class="o">+</span> <span class="nx">tab_name</span> <span class="o">+</span> <span class="s1">&#39; loading default home page!!!&#39;</span><span class="p">);</span>
+            <span class="nx">html</span> <span class="o">=</span> <span class="s1">&#39;/home.html&#39;</span><span class="p">;</span>
+        <span class="p">}</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-21'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-21'>#</a>
+      </div>
+      <p>pushes all of the tabs relevent data to globRequires</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="nx">html</span> <span class="o">=</span> <span class="nx">html</span><span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="s1">&#39;./public&#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">);</span>
+        <span class="nx">globRequires</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="nx">name</span> <span class="o">:</span> <span class="nx">tab_name</span><span class="p">,</span>
+            <span class="nx">html</span> <span class="o">:</span> <span class="nx">html</span><span class="p">,</span>
+            <span class="nx">backend</span> <span class="o">:</span> <span class="nx">backend</span><span class="p">,</span>
+            <span class="nx">file</span> <span class="o">:</span> <span class="nx">file</span><span class="p">,</span>
+            <span class="nx">stat</span> <span class="o">:</span> <span class="nx">fs</span><span class="p">.</span><span class="nx">statSync</span><span class="p">(</span><span class="nx">file</span><span class="p">)</span>
+        <span class="p">});</span>
+    <span class="p">});</span>
+<span class="p">}</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-22'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-22'>#</a>
+      </div>
+      <p>builds tabs to be sent to the client</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="kd">function</span> <span class="nx">buildTabs</span><span class="p">(</span><span class="nx">filter</span><span class="p">)</span>
+<span class="p">{</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-23'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-23'>#</a>
+      </div>
+      <p>establishing defaults for inputs, has to be done messily in node :(</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="nx">filter</span> <span class="o">=</span> <span class="k">typeof</span> <span class="nx">filter</span>  <span class="o">!==</span> <span class="s1">&#39;undefined&#39;</span> <span class="o">?</span> <span class="nx">filter</span> <span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">name</span><span class="p">){</span> <span class="k">return</span> <span class="kc">true</span><span class="p">};</span>
+    <span class="kd">var</span> <span class="nx">tabs</span> <span class="o">=</span> <span class="p">[];</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-24'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-24'>#</a>
+      </div>
+      <p>for each tab if filter push client content to output</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="nx">globRequires</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">tab</span><span class="p">)</span>
+    <span class="p">{</span>
+           
+        <span class="k">if</span><span class="p">(</span><span class="nx">filter</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="k">this</span><span class="p">,</span><span class="nx">tab</span><span class="p">.</span><span class="nx">file</span><span class="p">))</span>
+	<span class="p">{</span>
+            <span class="nx">tabs</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="nx">name</span> <span class="o">:</span> <span class="nx">tab</span><span class="p">.</span><span class="nx">name</span><span class="p">,</span>
+                <span class="nx">html</span> <span class="o">:</span> <span class="nx">tab</span><span class="p">.</span><span class="nx">html</span>
+            <span class="p">});</span>
+        <span class="p">}</span>
+    <span class="p">});</span>
+    <span class="k">return</span> <span class="nx">tabs</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kd">function</span> <span class="nx">update</span><span class="p">(</span><span class="nx">socket</span><span class="p">)</span>
+<span class="p">{</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-25'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-25'>#</a>
+      </div>
+      <p>establishes output that will be pushed to the console</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="kd">var</span> <span class="nx">output</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">;</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-26'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-26'>#</a>
+      </div>
+      <p>checks for any changes in tab src</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="kd">var</span> <span class="nx">src</span> <span class="o">=</span> <span class="nx">src_change</span><span class="p">();</span>
+    <span class="k">if</span><span class="p">(</span><span class="nx">src</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">length</span><span class="o">+</span><span class="nx">src</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="nx">length</span><span class="o">+</span><span class="nx">src</span><span class="p">[</span><span class="mi">2</span><span class="p">].</span><span class="nx">length</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">)</span>
+    <span class="p">{</span>
+         <span class="nx">output</span> <span class="o">+=</span> <span class="s1">&#39;Updating Tabs\nUpdating &#39;</span> <span class="o">+</span> <span class="nx">src</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;\nAdding &#39;</span> <span class="o">+</span> <span class="nx">src</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;\nRemoving &#39;</span> <span class="o">+</span> <span class="nx">src</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;\n&#39;</span><span class="p">;</span>
+         <span class="kd">var</span> <span class="nx">deadGlobs</span> <span class="o">=</span> <span class="p">[];</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-27'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-27'>#</a>
+      </div>
+      <p>if src was modified or removed</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>         <span class="k">if</span><span class="p">(</span><span class="nx">src</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">length</span> <span class="o">+</span> <span class="nx">src</span><span class="p">[</span><span class="mi">2</span><span class="p">].</span><span class="nx">length</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+         <span class="p">{</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-28'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-28'>#</a>
+      </div>
+      <p>add a new generation</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>             <span class="nx">pushGens</span><span class="p">();</span>
+             <span class="kd">var</span> <span class="nx">globGeneration</span> <span class="o">=</span> <span class="p">[];</span>
+             <span class="kd">var</span> <span class="nx">genSockets</span> <span class="o">=</span> <span class="p">[];</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-29'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-29'>#</a>
+      </div>
+      <p>forEach tab</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>             <span class="nx">globRequires</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">tab</span><span class="p">)</span>
+             <span class="p">{</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-30'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-30'>#</a>
+      </div>
+      <p>if this tabs src was removed or modified</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>                  <span class="k">if</span><span class="p">(</span><span class="nx">includes</span><span class="p">(</span><span class="nx">src</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="nx">tab</span><span class="p">.</span><span class="nx">file</span><span class="p">)</span><span class="o">||</span><span class="nx">includes</span><span class="p">(</span><span class="nx">src</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span><span class="nx">tab</span><span class="p">.</span><span class="nx">file</span><span class="p">))</span>
+                  <span class="p">{</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-31'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-31'>#</a>
+      </div>
+      <p>preserves cache in  generation</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>                       <span class="nx">globGeneration</span><span class="p">.</span><span class="nx">push</span><span class="p">({</span><span class="nx">obj</span><span class="o">:</span> <span class="nx">require</span><span class="p">.</span><span class="nx">cache</span><span class="p">[</span><span class="nx">path</span><span class="p">.</span><span class="nx">resolve</span><span class="p">(</span><span class="nx">tab</span><span class="p">.</span><span class="nx">file</span><span class="p">)],</span> <span class="nx">tab</span><span class="o">:</span> <span class="nx">tab</span><span class="p">});</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-32'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-32'>#</a>
+      </div>
+      <p>preserves active sockets on this generation</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>                       <span class="nx">appSockets</span><span class="p">.</span><span class="nx">filter</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">e</span><span class="p">)</span>
+                       <span class="p">{</span> 
+		           <span class="k">return</span> <span class="nx">e</span><span class="p">.</span><span class="nx">getType</span><span class="p">()</span> <span class="o">==</span> <span class="nx">tab</span><span class="p">.</span><span class="nx">name</span><span class="p">;</span> 
+                       <span class="p">}).</span><span class="nx">forEach</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">gen_to_die</span><span class="p">)</span>
+                       <span class="p">{</span>
+			   <span class="nx">genSockets</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">gen_to_die</span><span class="p">);</span>
+                       <span class="p">});</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-33'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-33'>#</a>
+      </div>
+      <p>logs globs to be removed from next generation</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>                       <span class="nx">globRequires</span><span class="p">.</span><span class="nx">filter</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">e</span><span class="p">)</span>
+                       <span class="p">{</span> 
+		           <span class="k">return</span> <span class="nx">e</span><span class="p">.</span><span class="nx">name</span> <span class="o">==</span> <span class="nx">tab</span><span class="p">.</span><span class="nx">name</span><span class="p">;</span> 
+                       <span class="p">}).</span><span class="nx">forEach</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">to_die</span><span class="p">)</span>
+		       <span class="p">{</span>
+		           <span class="nx">deadGlobs</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">to_die</span><span class="p">);</span>
+                       <span class="p">});</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-34'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-34'>#</a>
+      </div>
+      <p>removes old src from cache</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>                       <span class="k">delete</span> <span class="nx">require</span><span class="p">.</span><span class="nx">cache</span><span class="p">[</span><span class="nx">path</span><span class="p">.</span><span class="nx">resolve</span><span class="p">(</span><span class="nx">tab</span><span class="p">.</span><span class="nx">file</span><span class="p">)];</span>
+                  <span class="p">}</span>
+             <span class="p">});</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-35'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-35'>#</a>
+      </div>
+      <p>removes now outdated sockets from next generation</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>             <span class="nx">genSockets</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">s</span><span class="p">)</span>
+	     <span class="p">{</span>
+	          <span class="nx">appSockets</span><span class="p">.</span><span class="nx">splice</span><span class="p">(</span><span class="nx">appSockets</span><span class="p">.</span><span class="nx">indexOf</span><span class="p">(</span><span class="nx">s</span><span class="p">),</span><span class="mi">1</span><span class="p">);</span> 
+	     <span class="p">});</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-36'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-36'>#</a>
+      </div>
+      <p>pushes the now parent generation into oldGlobs</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>             <span class="nx">oldGlobs</span><span class="p">.</span><span class="nx">objs</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span>
+	     <span class="p">{</span>
+	      <span class="nx">objs</span> <span class="o">:</span> <span class="nx">globGeneration</span><span class="p">,</span>
+              <span class="nx">genSockets</span> <span class="o">:</span> <span class="nx">genSockets</span><span class="p">,</span>
+              <span class="nx">gen</span> <span class="o">:</span> <span class="mi">1</span>
+	     <span class="p">});</span>
+         <span class="p">}</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-37'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-37'>#</a>
+      </div>
+      <p>logs removed tabs then removes them along with modified tabs from current genreation</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>	 <span class="kd">var</span> <span class="nx">removed_tabs</span> <span class="o">=</span> <span class="nx">buildTabs</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">name</span><span class="p">)</span>
+	 <span class="p">{</span> 
+	     <span class="k">return</span> <span class="nx">includes</span><span class="p">(</span><span class="nx">src</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span><span class="nx">name</span><span class="p">);</span>
+	 <span class="p">});</span>
+
+	 <span class="nx">deadGlobs</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">g</span><span class="p">)</span>
+         <span class="p">{</span>
+             <span class="nx">globRequires</span><span class="p">.</span><span class="nx">splice</span><span class="p">(</span><span class="nx">globRequires</span><span class="p">.</span><span class="nx">indexOf</span><span class="p">(</span><span class="nx">g</span><span class="p">),</span><span class="mi">1</span><span class="p">)</span> <span class="p">;</span>
+         <span class="p">});</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-38'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-38'>#</a>
+      </div>
+      <p>loads new and modified tabs and logs them, by loading the tabs they are added to the current generation</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>         <span class="nx">load</span><span class="p">(</span><span class="nx">src</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="kc">false</span><span class="p">);</span>
+         <span class="nx">load</span><span class="p">(</span><span class="nx">src</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="kc">false</span><span class="p">);</span>
+         <span class="kd">var</span> <span class="nx">updated_tabs</span> <span class="o">=</span> <span class="nx">buildTabs</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">name</span><span class="p">)</span>
+	 <span class="p">{</span> 
+	     <span class="k">return</span> <span class="nx">includes</span><span class="p">(</span><span class="nx">src</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="nx">name</span><span class="p">);</span>
+         <span class="p">});</span>
+	
+         <span class="kd">var</span> <span class="nx">added_tabs</span> <span class="o">=</span> <span class="nx">buildTabs</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">name</span><span class="p">)</span>
+         <span class="p">{</span> 
+	     <span class="k">return</span> <span class="nx">includes</span><span class="p">(</span><span class="nx">src</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="nx">name</span><span class="p">)</span>
+	 <span class="p">});</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-39'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-39'>#</a>
+      </div>
+      <p>notifies potentially unaware users to the changes</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>         <span class="nx">mainSockets</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">current_socket</span><span class="p">)</span>
+         <span class="p">{</span>
+              <span class="k">if</span><span class="p">(</span><span class="nx">socket</span> <span class="o">==</span> <span class="kc">null</span> <span class="o">||</span> <span class="nx">current_socket</span><span class="p">.</span><span class="nx">id</span> <span class="o">!=</span> <span class="nx">socket</span><span class="p">.</span><span class="nx">id</span><span class="p">)</span>
+              <span class="p">{</span>
+                  <span class="nx">current_socket</span><span class="p">.</span><span class="nx">emit</span><span class="p">(</span><span class="s1">&#39;unexpectedUpdate&#39;</span><span class="p">,{</span><span class="nx">updated_tabs</span> <span class="o">:</span> <span class="nx">updated_tabs</span><span class="p">,</span> <span class="nx">added_tabs</span> <span class="o">:</span> <span class="nx">added_tabs</span><span class="p">,</span> <span class="nx">removed_tabs</span> <span class="o">:</span> <span class="nx">removed_tabs</span><span class="p">});</span>
+              <span class="p">}</span>
+         <span class="p">});</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-40'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-40'>#</a>
+      </div>
+      <p>if a user intiated the update there client is automaticly updated</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>         <span class="k">if</span><span class="p">(</span><span class="nx">socket</span> <span class="o">!=</span> <span class="kc">null</span><span class="p">)</span>
+         <span class="p">{</span>
+              <span class="nx">socket</span><span class="p">.</span><span class="nx">emit</span><span class="p">(</span><span class="s1">&#39;tabSync&#39;</span><span class="p">,</span> <span class="nx">updated_tabs</span><span class="p">.</span><span class="nx">concat</span><span class="p">(</span><span class="nx">added_tabs</span><span class="p">));</span>
+              <span class="nx">socket</span><span class="p">.</span><span class="nx">emit</span><span class="p">(</span><span class="s1">&#39;removeTabs&#39;</span><span class="p">,</span><span class="nx">removed_tabs</span><span class="p">);</span>
+              <span class="nx">socket</span><span class="p">.</span><span class="nx">emit</span><span class="p">(</span><span class="s1">&#39;message&#39;</span><span class="p">,</span><span class="s1">&#39;WebTools succesfully updated&#39;</span><span class="p">);</span>
+         <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="k">else</span> <span class="k">if</span><span class="p">(</span><span class="nx">socket</span> <span class="o">!=</span> <span class="kc">null</span><span class="p">)</span>
+    <span class="p">{</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-41'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-41'>#</a>
+      </div>
+      <p>if there is no source change and a user attempted the update they are notified</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="nx">socket</span><span class="p">.</span><span class="nx">emit</span><span class="p">(</span><span class="s1">&#39;message&#39;</span><span class="p">,</span><span class="s1">&#39;no changes detected to the server note that changes to client files do not require a reset just reload your browerser tab&#39;</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="k">else</span>
+    <span class="p">{</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-42'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-42'>#</a>
+      </div>
+      <p>if the console attempted the update the message is pushed to the console</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="nx">output</span> <span class="o">+=</span> <span class="s1">&#39;no changes detected to the server note that changes to client files do not require a reset just reload your browerser tab&#39;</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="nx">output</span><span class="p">;</span>
+<span class="p">}</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-43'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-43'>#</a>
+      </div>
+      <p>moves all generation in old generation up by one for example parent becomes grandparent or 1 becomes 2</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="kd">function</span> <span class="nx">pushGens</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="nx">oldGlobs</span><span class="p">.</span><span class="nx">maxGen</span> <span class="o">=</span> <span class="nx">oldGlobs</span><span class="p">.</span><span class="nx">maxGen</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>
+    <span class="nx">oldGlobs</span><span class="p">.</span><span class="nx">objs</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">gen</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="nx">gen</span><span class="p">.</span><span class="nx">gen</span> <span class="o">=</span> <span class="nx">gen</span><span class="p">.</span><span class="nx">gen</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>
+    <span class="p">});</span>
+<span class="p">}</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-44'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-44'>#</a>
+      </div>
+      <p>removes a generation then reduces all older generations by one</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="kd">function</span> <span class="nx">pullGen</span><span class="p">(</span><span class="nx">pullGen</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="nx">newGlobs</span> <span class="o">=</span> <span class="p">[];</span>
+    <span class="nx">oldGlobs</span><span class="p">.</span><span class="nx">maxGen</span> <span class="o">=</span> <span class="nx">oldGlobs</span><span class="p">.</span><span class="nx">maxGen</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+    <span class="nx">oldGlobs</span><span class="p">.</span><span class="nx">objs</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">gen</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">if</span><span class="p">(</span><span class="nx">gen</span><span class="p">.</span><span class="nx">gen</span> <span class="o">&gt;</span> <span class="nx">pullGen</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="nx">gen</span><span class="p">.</span><span class="nx">gen</span> <span class="o">=</span> <span class="nx">gen</span><span class="p">.</span><span class="nx">gen</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span>
+            <span class="nx">newGlobs</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">gen</span><span class="p">);</span>
+	<span class="p">}</span>
+        <span class="k">else</span> <span class="k">if</span><span class="p">(</span><span class="nx">gen</span><span class="p">.</span><span class="nx">gen</span> <span class="o">&lt;</span> <span class="nx">pullGen</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="nx">newGlobs</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">gen</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">})</span>
+    <span class="nx">oldGlobs</span><span class="p">.</span><span class="nx">objs</span> <span class="o">=</span> <span class="nx">newGlobs</span><span class="p">;</span>
+<span class="p">}</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-45'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-45'>#</a>
+      </div>
+      <p>detects if tab src has changed </p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="kd">function</span> <span class="nx">src_change</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="nx">files</span> <span class="o">=</span> <span class="nx">glob</span><span class="p">.</span><span class="nx">sync</span><span class="p">(</span><span class="s1">&#39;./public/tabs/*/*.js&#39;</span><span class="p">);</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-46'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-46'>#</a>
+      </div>
+      <p>results[0] = modified, results[1] = added, results[2] = removed</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="kd">var</span> <span class="nx">results</span> <span class="o">=</span> <span class="p">[];</span>
+    <span class="kd">var</span> <span class="nx">updated</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="kd">var</span> <span class="nx">added</span> <span class="o">=</span> <span class="p">[];</span>
+    <span class="kd">var</span> <span class="nx">removed</span> <span class="o">=</span> <span class="p">[];</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-47'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-47'>#</a>
+      </div>
+      <p>compares current file structure and meta data to file structure and meta data at time of load to determine changes</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="nx">files</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">file</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="kd">var</span> <span class="nx">exists</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+        <span class="kd">var</span> <span class="nx">same</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+        <span class="nx">globRequires</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">glob</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="k">if</span><span class="p">(</span><span class="nx">path</span><span class="p">.</span><span class="nx">resolve</span><span class="p">(</span><span class="nx">glob</span><span class="p">.</span><span class="nx">file</span><span class="p">)</span> <span class="o">==</span> <span class="nx">path</span><span class="p">.</span><span class="nx">resolve</span><span class="p">(</span><span class="nx">file</span><span class="p">))</span>
+            <span class="p">{</span>
+                <span class="nx">exists</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+                <span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="nx">_</span><span class="p">.</span><span class="nx">isEqual</span><span class="p">(</span><span class="nx">glob</span><span class="p">.</span><span class="nx">stat</span><span class="p">,</span> <span class="nx">fs</span><span class="p">.</span><span class="nx">statSync</span><span class="p">(</span><span class="nx">file</span><span class="p">)))</span>
+                <span class="p">{</span>
+                    <span class="nx">updated</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">file</span><span class="p">);</span>
+                <span class="p">}</span>
+            <span class="p">}</span>        
+        <span class="p">})</span>   
+        <span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="nx">exists</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="nx">added</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">file</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">})</span>
+    <span class="nx">globRequires</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">glob</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="kd">var</span> <span class="nx">exists</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+        <span class="nx">files</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">file</span><span class="p">)</span>
+        <span class="p">{</span>
+	    <span class="k">if</span><span class="p">(</span><span class="nx">path</span><span class="p">.</span><span class="nx">resolve</span><span class="p">(</span><span class="nx">glob</span><span class="p">.</span><span class="nx">file</span><span class="p">)</span> <span class="o">==</span> <span class="nx">path</span><span class="p">.</span><span class="nx">resolve</span><span class="p">(</span><span class="nx">file</span><span class="p">))</span>
+            <span class="p">{</span>
+                <span class="nx">exists</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+            <span class="p">}</span>
+	<span class="p">})</span>
+        <span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="nx">exists</span><span class="p">)</span>
+        <span class="p">{</span>
+             <span class="nx">removed</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">glob</span><span class="p">.</span><span class="nx">file</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">})</span>
+    <span class="nx">results</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">updated</span><span class="p">);</span>
+    <span class="nx">results</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">added</span><span class="p">);</span>
+    <span class="nx">results</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">removed</span><span class="p">);</span>
+    <span class="k">return</span> <span class="nx">results</span><span class="p">;</span>
+<span class="p">}</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-48'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-48'>#</a>
+      </div>
+      <p>async function that allows heart beat to change with config file</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="kd">var</span> <span class="nx">hbeatChange</span> <span class="o">=</span> <span class="nx">async</span><span class="p">(</span><span class="kd">function</span><span class="p">()</span>
+<span class="p">{</span> 
+    <span class="k">return</span> <span class="k">new</span> <span class="nb">Promise</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">res</span><span class="p">,</span><span class="nx">rej</span><span class="p">)</span>
+    <span class="p">{</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-49'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-49'>#</a>
+      </div>
+      <p>compares old and new heart beats and documents them</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="kd">var</span> <span class="nx">old</span> <span class="o">=</span> <span class="nx">clearLoop</span><span class="p">.</span><span class="nx">_idleTimeout</span><span class="o">/</span><span class="mi">1000</span><span class="p">;</span>
+        <span class="kd">var</span> <span class="nx">beat</span> <span class="o">=</span> <span class="nx">config</span><span class="p">.</span><span class="nx">conditionalSet</span><span class="p">(</span><span class="s1">&#39;heartbeat&#39;</span><span class="p">,</span><span class="kc">null</span><span class="p">,</span><span class="mi">30</span><span class="p">,[</span><span class="mi">30</span><span class="p">,</span><span class="mi">3600</span><span class="p">]);</span>
+        <span class="nx">res</span><span class="p">({</span><span class="nx">change</span> <span class="o">:</span> <span class="p">(</span><span class="nx">beat</span> <span class="o">!=</span> <span class="nx">old</span><span class="p">),</span><span class="nx">beat</span><span class="o">:</span> <span class="nx">beat</span><span class="p">,</span> <span class="nx">old</span><span class="o">:</span> <span class="nx">old</span><span class="p">});</span>
+    <span class="p">});</span>
+<span class="p">});</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-50'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-50'>#</a>
+      </div>
+      <p>clears away old client connections and tabs</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="kd">function</span> <span class="nx">clearOld</span><span class="p">()</span>
+<span class="p">{</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-51'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-51'>#</a>
+      </div>
+      <p>checks for heartbeat change in config file if change is detected heartbeat is updated</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="nx">hbeatChange</span><span class="p">().</span><span class="nx">then</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">obj</span><span class="p">)</span>
+    <span class="p">{</span>
+         <span class="k">if</span><span class="p">(</span><span class="nx">obj</span><span class="p">.</span><span class="nx">change</span><span class="p">)</span>
+	 <span class="p">{</span>
+	     <span class="nx">clearInterval</span><span class="p">(</span><span class="nx">clearLoop</span><span class="p">);</span>
+             <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;heart beat moved &#39;</span> <span class="o">+</span> <span class="nx">obj</span><span class="p">.</span><span class="nx">old</span> <span class="o">+</span> <span class="s1">&#39; -&gt; &#39;</span> <span class="o">+</span> <span class="nx">obj</span><span class="p">.</span><span class="nx">beat</span><span class="p">);</span>
+	     <span class="nx">clearLoop</span> <span class="o">=</span> <span class="nx">setInterval</span><span class="p">(</span><span class="nx">clearOld</span><span class="p">,</span><span class="nx">obj</span><span class="p">.</span><span class="nx">beat</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">);</span>
+	 <span class="p">}</span>
+    <span class="p">});</span>
+
+    <span class="kd">var</span> <span class="nx">changed</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">inputSockets</span> <span class="o">=</span> <span class="p">[];</span>
+    <span class="k">for</span><span class="p">(</span><span class="kd">var</span> <span class="nx">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span><span class="o">&lt;</span><span class="nx">oldGlobs</span><span class="p">.</span><span class="nx">maxGen</span><span class="o">+</span><span class="mi">1</span><span class="p">;</span><span class="nx">i</span><span class="o">++</span><span class="p">)</span>
+    <span class="p">{</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-52'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-52'>#</a>
+      </div>
+      <p>reads in generations sockets</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="k">if</span><span class="p">(</span><span class="nx">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="p">{</span>
+    	    <span class="nx">inputSockets</span> <span class="o">=</span> <span class="nx">appSockets</span><span class="p">;</span>
+        <span class="p">}</span>
+        <span class="k">else</span>
+        <span class="p">{</span>
+   	    <span class="nx">inputSockets</span> <span class="o">=</span> <span class="nx">oldGlobs</span><span class="p">.</span><span class="nx">objs</span><span class="p">[</span><span class="nx">i</span><span class="o">-</span><span class="mi">1</span><span class="p">].</span><span class="nx">genSockets</span><span class="p">;</span>
+	<span class="p">}</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-53'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-53'>#</a>
+      </div>
+      <p>pings generations sockets</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>	<span class="nx">inputSockets</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">connection</span><span class="p">)</span>
+	<span class="p">{</span>
+    	    <span class="nx">connection</span><span class="p">.</span><span class="nx">setResponds</span><span class="p">(</span><span class="kc">false</span><span class="p">);</span>
+    	    <span class="nx">connection</span><span class="p">.</span><span class="nx">ping</span><span class="p">();</span>
+	<span class="p">});</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-54'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-54'>#</a>
+      </div>
+      <p>immidate execute function to presere i inside timeout</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">index</span><span class="p">){</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-55'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-55'>#</a>
+      </div>
+      <p>checks for socket response removes unresponive sockets empty generations are removed</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>	    <span class="nx">setTimeout</span><span class="p">(</span><span class="kd">function</span><span class="p">()</span>
+	    <span class="p">{</span>
+                <span class="kd">var</span> <span class="nx">iSockets</span><span class="p">;</span>
+                <span class="k">if</span><span class="p">(</span><span class="nx">index</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+                <span class="p">{</span>
+    	            <span class="nx">iSockets</span> <span class="o">=</span> <span class="nx">appSockets</span><span class="p">;</span>
+                <span class="p">}</span>
+                <span class="k">else</span>
+                <span class="p">{</span>
+   	            <span class="nx">iSockets</span> <span class="o">=</span> <span class="nx">oldGlobs</span><span class="p">.</span><span class="nx">objs</span><span class="p">[</span><span class="nx">index</span><span class="o">-</span><span class="mi">1</span><span class="p">].</span><span class="nx">genSockets</span><span class="p">;</span>
+	        <span class="p">}</span>
+
+    	        <span class="kd">var</span> <span class="nx">finalSockets</span><span class="o">=</span> <span class="p">[];</span>
+    	        <span class="nx">iSockets</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">connection</span><span class="p">)</span>
+    	        <span class="p">{</span>
+        	    <span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="nx">connection</span><span class="p">.</span><span class="nx">getResponds</span><span class="p">())</span>
+        	    <span class="p">{</span> 
+                        <span class="nx">changed</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+                        <span class="k">for</span> <span class="p">(</span><span class="nx">k</span> <span class="k">in</span> <span class="nx">app</span><span class="p">.</span><span class="nx">stack</span><span class="p">)</span> 
+			<span class="p">{</span>
+        	            <span class="k">if</span> <span class="p">(</span><span class="nx">app</span><span class="p">.</span><span class="nx">stack</span><span class="p">[</span><span class="nx">k</span><span class="p">].</span><span class="nx">route</span> <span class="o">+</span> <span class="s2">&quot;&quot;</span> <span class="o">==</span> <span class="s1">&#39;/tabs/&#39;</span> <span class="o">+</span> <span class="nx">connection</span><span class="p">.</span><span class="nx">getType</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;/index.html/&#39;</span><span class="o">+</span><span class="nx">connection</span><span class="p">.</span><span class="nx">getId</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> 
+			    <span class="p">{</span>       
+    		                <span class="nx">app</span><span class="p">.</span><span class="nx">stack</span><span class="p">.</span><span class="nx">splice</span><span class="p">(</span><span class="nx">k</span><span class="p">,</span><span class="mi">1</span><span class="p">);</span>
+                                <span class="k">break</span><span class="p">;</span>
+                            <span class="p">}</span>
+                        <span class="p">}</span>
+        
+             	        <span class="nx">connection</span><span class="p">.</span><span class="nx">disconnect</span><span class="p">();</span>
+             	        <span class="nx">connetion</span> <span class="o">=</span> <span class="kc">null</span><span class="p">;</span>
+        	    <span class="p">}</span>
+              	    <span class="k">else</span>
+        	    <span class="p">{</span>
+             	        <span class="nx">finalSockets</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">connection</span><span class="p">);</span>
+               	    <span class="p">}</span>
+                <span class="p">})</span> 
+                <span class="k">if</span><span class="p">(</span><span class="nx">index</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+                <span class="p">{</span>
+    	            <span class="nx">appSockets</span> <span class="o">=</span> <span class="nx">finalSockets</span><span class="p">;</span>
+                <span class="p">}</span>
+                <span class="k">else</span>
+                <span class="p">{</span>
+		    <span class="nx">oldGlobs</span><span class="p">.</span><span class="nx">objs</span><span class="p">[</span><span class="nx">index</span><span class="o">-</span><span class="mi">1</span><span class="p">].</span><span class="nx">genSockets</span> <span class="o">=</span> <span class="nx">finalSockets</span><span class="p">;</span>
+                <span class="p">}</span>
+	    <span class="p">},</span> <span class="mi">10000</span><span class="p">);</span>
+        <span class="p">})(</span><span class="nx">i</span><span class="p">)</span>
+
+    <span class="p">}</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-56'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-56'>#</a>
+      </div>
+      <p>detects unneeded tabs in generatios and removes them</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="nx">setTimeout</span><span class="p">(</span><span class="kd">function</span><span class="p">()</span>
+    <span class="p">{</span>
+         <span class="k">if</span><span class="p">(</span><span class="nx">changed</span><span class="p">)</span>
+         <span class="p">{</span>
+             <span class="nx">oldGlobs</span><span class="p">.</span><span class="nx">objs</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">gen</span><span class="p">)</span>
+             <span class="p">{</span>
+                 <span class="k">if</span><span class="p">(</span><span class="nx">gen</span><span class="p">.</span><span class="nx">genSockets</span><span class="p">.</span><span class="nx">length</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+                 <span class="p">{</span>
+                     <span class="nx">pullGen</span><span class="p">(</span><span class="nx">gen</span><span class="p">.</span><span class="nx">gen</span><span class="p">);</span>
+                     <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;Generation &quot;</span><span class="o">+</span> <span class="nx">gen</span><span class="p">.</span><span class="nx">gen</span> <span class="o">+</span> <span class="s2">&quot; has been pulled\n&quot;</span><span class="p">);</span>
+                 <span class="p">}</span>
+                 <span class="k">else</span>
+                 <span class="p">{</span>
+                     <span class="kd">var</span> <span class="nx">unNeededObjs</span> <span class="o">=</span> <span class="p">[];</span>
+                     <span class="nx">gen</span><span class="p">.</span><span class="nx">objs</span><span class="p">.</span><span class="nx">filter</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">tab</span><span class="p">)</span>
+                     <span class="p">{</span>
+                         <span class="kd">var</span> <span class="nx">objNeeded</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+                         <span class="nx">gen</span><span class="p">.</span><span class="nx">genSockets</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">sock</span><span class="p">)</span>
+                         <span class="p">{</span>
+                             <span class="k">if</span><span class="p">(</span><span class="nx">sock</span><span class="p">.</span><span class="nx">getType</span><span class="p">()</span> <span class="o">==</span> <span class="nx">tab</span><span class="p">.</span><span class="nx">tab</span><span class="p">.</span><span class="nx">name</span><span class="p">)</span>
+                     	     <span class="p">{</span>
+			         <span class="nx">objNeeded</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+			     <span class="p">}</span>
+		         <span class="p">})</span>
+                         <span class="k">return</span> <span class="o">!</span><span class="nx">objNeeded</span>
+  	             <span class="p">}).</span><span class="nx">forEach</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">unNeeded</span><span class="p">){</span><span class="nx">unNeededObjs</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">unNeeded</span><span class="p">)});</span>
+                     <span class="nx">unNeededObjs</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">unNeeded</span><span class="p">)</span>
+		     <span class="p">{</span>
+                         <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;Generation &#39;</span> <span class="o">+</span> <span class="nx">gen</span><span class="p">.</span><span class="nx">gen</span> <span class="o">+</span> <span class="s1">&#39; tab &#39;</span> <span class="o">+</span>  <span class="nx">unNeeded</span><span class="p">.</span><span class="nx">tab</span><span class="p">.</span><span class="nx">name</span> <span class="o">+</span> <span class="s1">&#39; pulled&#39;</span><span class="p">);</span>
+		         <span class="kd">var</span> <span class="nx">index</span> <span class="o">=</span> <span class="nx">gen</span><span class="p">.</span><span class="nx">objs</span><span class="p">.</span><span class="nx">indexOf</span><span class="p">(</span><span class="nx">unNeeded</span><span class="p">);</span>
+                         <span class="k">delete</span> <span class="nx">gen</span><span class="p">.</span><span class="nx">objs</span><span class="p">[</span><span class="nx">index</span><span class="p">].</span><span class="nx">obj</span><span class="p">;</span>
+                         <span class="nx">gen</span><span class="p">.</span><span class="nx">objs</span><span class="p">.</span><span class="nx">splice</span><span class="p">(</span><span class="nx">index</span><span class="p">,</span><span class="mi">1</span><span class="p">);</span>
+		     <span class="p">})</span>
+              
+                 <span class="p">}</span>
+             <span class="p">})</span>
+         <span class="p">}</span>
+    <span class="p">},</span> <span class="mi">10500</span><span class="p">);</span>
+<span class="p">}</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-57'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-57'>#</a>
+      </div>
+      <p>includes helper function because this version of node does not have on :(</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="kd">function</span> <span class="nx">includes</span><span class="p">(</span><span class="nx">arr</span><span class="p">,</span><span class="nx">value</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">toReturn</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+    <span class="nx">arr</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">val</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">if</span><span class="p">(</span><span class="nx">val</span> <span class="o">==</span> <span class="nx">value</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="nx">toReturn</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+        <span class="p">}</span> 
+    <span class="p">})</span>
+    <span class="k">return</span> <span class="nx">toReturn</span><span class="p">;</span>
+<span class="p">}</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-58'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-58'>#</a>
+      </div>
+      <p>handle input</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="kd">var</span> <span class="nx">stdin</span> <span class="o">=</span> <span class="nx">process</span><span class="p">.</span><span class="nx">openStdin</span><span class="p">();</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-59'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-59'>#</a>
+      </div>
+      <p>adds some limited commands to node console</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="nx">stdin</span><span class="p">.</span><span class="nx">addListener</span><span class="p">(</span><span class="s2">&quot;data&quot;</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">d</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">input</span> <span class="o">=</span> <span class="nx">d</span><span class="p">.</span><span class="nx">toString</span><span class="p">().</span><span class="nx">trim</span><span class="p">().</span><span class="nx">toLowerCase</span><span class="p">();</span>
+    <span class="kd">var</span> <span class="nx">output</span> <span class="o">=</span> <span class="s2">&quot;\n\nyou entered: [&quot;</span> <span class="o">+</span> 
+        <span class="nx">input</span> <span class="o">+</span> <span class="s2">&quot;]\n\nreponse:\n&quot;</span>
+    <span class="k">switch</span><span class="p">(</span><span class="nx">input</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">case</span> <span class="s1">&#39;connections&#39;</span><span class="o">:</span>
+            <span class="nx">output</span> <span class="o">+=</span> <span class="s1">&#39;\n----Current Connections----\n&#39;</span><span class="p">;</span>
+            <span class="kd">var</span> <span class="nx">tab_names</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+         
+            <span class="nx">globRequires</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">tab</span><span class="p">)</span>
+            <span class="p">{</span>
+                <span class="nx">tab_names</span> <span class="o">+=</span> <span class="s1">&#39;[&#39;</span><span class="o">+</span><span class="nx">tab</span><span class="p">.</span><span class="nx">name</span><span class="o">+</span><span class="s1">&#39;] &#39;</span><span class="p">;</span>
+  	    <span class="p">});</span>
+ 
+            <span class="nx">output</span> <span class="o">+=</span> <span class="s1">&#39;\n  --Generation 0-- active tabs:&#39;</span><span class="o">+</span> <span class="nx">tab_names</span><span class="o">+</span> <span class="s1">&#39;\n&#39;</span><span class="p">;</span>
+
+            <span class="nx">appSockets</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">connection</span><span class="p">)</span>
+            <span class="p">{</span>
+                 <span class="nx">output</span> <span class="o">+=</span> <span class="p">(</span><span class="s1">&#39;    &#39;</span> <span class="o">+</span> <span class="nx">connection</span><span class="p">.</span><span class="nx">getType</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39; Socket: &#39;</span> <span class="o">+</span> <span class="nx">connection</span><span class="p">.</span><span class="nx">getId</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;\n&#39;</span><span class="p">);</span>
+            <span class="p">});</span>
+
+            <span class="nx">oldGlobs</span><span class="p">.</span><span class="nx">objs</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">gen</span><span class="p">)</span>
+            <span class="p">{</span>
+                <span class="nx">tab_names</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">;</span>
+
+                <span class="nx">gen</span><span class="p">.</span><span class="nx">objs</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">tab</span><span class="p">)</span>
+                <span class="p">{</span>
+                    <span class="nx">tab_names</span> <span class="o">+=</span> <span class="s1">&#39;[&#39;</span><span class="o">+</span><span class="nx">tab</span><span class="p">.</span><span class="nx">tab</span><span class="p">.</span><span class="nx">name</span><span class="o">+</span><span class="s1">&#39;] &#39;</span><span class="p">;</span>
+  	        <span class="p">});</span>
+
+                <span class="nx">output</span> <span class="o">+=</span> <span class="s1">&#39;\n  --Generation &#39;</span> <span class="o">+</span> <span class="nx">gen</span><span class="p">.</span><span class="nx">gen</span> <span class="o">+</span> <span class="s1">&#39;-- active tabs:&#39;</span> <span class="o">+</span> <span class="nx">tab_names</span> <span class="o">+</span> <span class="s1">&#39;\n&#39;</span><span class="p">;</span>
+
+                <span class="nx">gen</span><span class="p">.</span><span class="nx">genSockets</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">connection</span><span class="p">)</span>
+                <span class="p">{</span>
+                    <span class="nx">output</span> <span class="o">+=</span> <span class="p">(</span><span class="s1">&#39;    &#39;</span> <span class="o">+</span> <span class="nx">connection</span><span class="p">.</span><span class="nx">getType</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39; Socket: &#39;</span> <span class="o">+</span> <span class="nx">connection</span><span class="p">.</span><span class="nx">getId</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;\n&#39;</span><span class="p">);</span>
+                <span class="p">});</span>
+            <span class="p">});</span>
+            <span class="nx">output</span> <span class="o">+=</span> <span class="s1">&#39;\n\n----END----&#39;</span><span class="p">;</span>
+            <span class="k">break</span><span class="p">;</span>
+        
+        <span class="k">case</span> <span class="s1">&#39;reset&#39;</span><span class="o">:</span>
+            <span class="nx">output</span> <span class="o">+=</span> <span class="nx">reset</span><span class="p">();</span>
+            <span class="k">break</span><span class="p">;</span>
+
+        <span class="k">default</span><span class="o">:</span>
+            <span class="nx">output</span> <span class="o">+=</span> <span class="s2">&quot;Unrecognized Command&quot;</span><span class="p">;</span>
+            <span class="k">break</span><span class="p">;</span>
+    <span class="p">}</span> 
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">output</span><span class="o">+</span><span class="s1">&#39;\n\n&#39;</span><span class="p">);</span>
+  <span class="p">});</span>
+
+</pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+</div>
+</body>
